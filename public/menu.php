@@ -8,7 +8,7 @@ $admin_mi = $_SESSION['admin'] ?? 0;
 
 <nav style="padding: 10px; background-color: #eee; margin-bottom: 20px;">
     <a href="index.php">🏠 Ana Sayfa</a> |
-	<a href="konumlar.php">📦 Envanter</a> |
+	<a href="konum.php">📦 Envanter</a> |
 	<a href="urun_ara.php">🔍 Ürün Ara</a> |
     <a href="kullanicilar.php">👤 Kullanıcılar</a> |
     <?php if ($admin_mi): ?>
