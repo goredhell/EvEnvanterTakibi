@@ -1,6 +1,7 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
 $token = $_GET['token'] ?? '';
 

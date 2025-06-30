@@ -1,6 +1,8 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
+
 
 // En üst düzey konumları çek (ebeveyni olmayanlar)
 $stmt = $pdo->query("SELECT * FROM konumlar WHERE ebeveyn_id IS NULL ORDER BY ad");

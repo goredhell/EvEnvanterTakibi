@@ -1,6 +1,7 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
 $admin_mi = ($_SESSION['admin'] == 1);
 
