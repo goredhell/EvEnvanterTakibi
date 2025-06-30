@@ -24,3 +24,4 @@ CREATE TABLE kullanicilar (
 -- Şifre: admin123
 INSERT INTO kullanicilar (kullanici_adi, sifre_hash, admin)
 VALUES ('admin', '$2y$10$vT6V1Chx4iQclR3tMxZPReCyVElWk8rp0EoJgr5g9F0Oa6LtKYu2S', TRUE);
+

@@ -1,36 +1,40 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
-$konum_id = $_GET['konum_id'] ?? null;
-
-if (!$konum_id) {
-    echo "Geçersiz konum.";
-    exit;
+// Tüm konumları çek (seçim için)
+$stmt = $pdo->query("SELECT id, ad, ebeveyn_id FROM konumlar");
+$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$konumMap = [];
+foreach ($konumlar as $k) {
+    $konumMap[$k['id']] = $k;
 }
 
-// Konum bilgisi
-$stmt = $pdo->prepare("SELECT * FROM konumlar WHERE id = ?");
-$stmt->execute([$konum_id]);
-$konum = $stmt->fetch();
-
-if (!$konum) {
-    echo "Konum bulunamadı.";
-    exit;
+// Hiyerarşik ad üretimi
+function konumYolu($konum_id) {
+    global $konumMap;
+    $parcalar = [];
+    while ($konum_id && isset($konumMap[$konum_id])) {
+        array_unshift($parcalar, $konumMap[$konum_id]['ad']);
+        $konum_id = $konumMap[$konum_id]['ebeveyn_id'];
+    }
+    return implode(" → ", $parcalar);
 }
 
+// Form gönderildiğinde
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ad = $_POST['ad'] ?? '';
-    $aciklama = $_POST['aciklama'] ?? '';
+    $urun_ad = trim($_POST['ad'] ?? '');
+    $aciklama = trim($_POST['aciklama'] ?? '');
+    $konum_id = $_POST['konum_id'] ?? null;
 
-    if (empty($ad)) {
-        $hata = "Ürün adı boş bırakılamaz.";
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO urunler (konum_id, ad, aciklama) VALUES (?, ?, ?)");
-        $stmt->execute([$konum_id, $ad, $aciklama]);
-
-        header("Location: konum.php?token=" . urlencode($konum['token']));
+    if ($urun_ad && $konum_id) {
+        $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, konum_id) VALUES (?, ?, ?)");
+        $stmt->execute([$urun_ad, $aciklama, $konum_id]);
+        header("Location: urunler.php");
         exit;
+    } else {
+        $hata = "Ürün adı ve konum zorunludur.";
     }
 }
 ?>
@@ -39,25 +43,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($konum['ad']) ?> - Ürün Ekle</title>
+    <title>Yeni Ürün Ekle</title>
 </head>
 <body>
-    <h2>🎯 <?= htmlspecialchars($konum['ad']) ?> konumuna ürün ekle</h2>
+    <h2>➕ Yeni Ürün Ekle</h2>
+
+    <?php if (isset($hata)): ?>
+        <p style="color:red;"><?= htmlspecialchars($hata) ?></p>
+    <?php endif; ?>
 
     <form method="post">
         <label>Ürün Adı:</label><br>
         <input type="text" name="ad" required><br><br>
 
-        <label>Açıklama (isteğe bağlı):</label><br>
-        <textarea name="aciklama" rows="4" cols="40"></textarea><br><br>
+        <label>Açıklama:</label><br>
+        <textarea name="aciklama" rows="3" cols="40"></textarea><br><br>
 
-        <button type="submit">Ürünü Ekle</button>
+        <label>Konum Seç:</label><br>
+        <select name="konum_id" required>
+            <option value="">-- Seçiniz --</option>
+            <?php foreach ($konumlar as $k): ?>
+                <option value="<?= $k['id'] ?>"><?= konumYolu($k['id']) ?></option>
+            <?php endforeach; ?>
+        </select><br><br>
+
+        <button type="submit">Kaydet</button>
     </form>
 
-    <p><a href="konum.php?token=<?= urlencode($konum['token']) ?>">← Geri Dön</a></p>
-
-    <?php if (isset($hata)): ?>
-        <p style="color:red;"><?= htmlspecialchars($hata) ?></p>
-    <?php endif; ?>
+    <p><a href="urunler.php">← Ürün Listesine Dön</a></p>
 </body>
 </html>
