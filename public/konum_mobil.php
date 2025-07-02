@@ -17,6 +17,22 @@ if (!$konum) {
     exit;
 }
 
+// Fonksiyon: Konum yolunu al (en üstten bu konuma kadar)
+function getKonumYolu($pdo, $konum) {
+    $yol = [];
+    while ($konum) {
+        $yol[] = $konum;
+        if (!$konum['ebeveyn_id']) break;
+
+        $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE id = ?");
+        $stmt->execute([$konum['ebeveyn_id']]);
+        $konum = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    return array_reverse($yol);
+}
+
+$konum_yolu = getKonumYolu($pdo, $konum);
+
 // Ürünleri al
 $stmt = $pdo->prepare("SELECT * FROM urunler WHERE konum_id = ?");
 $stmt->execute([$konum['id']]);
@@ -35,6 +51,16 @@ $urunler = $stmt->fetchAll();
 
 <div class="container py-4" style="max-width:600px;">
     <h4 class="mb-3 text-center">📦 <?= htmlspecialchars($konum['ad']) ?></h4>
+
+    <div class="mb-3">
+        <small class="text-muted">📍 Konum Yolu:</small><br>
+        <div class="fw-semibold">
+            <?php foreach ($konum_yolu as $i => $k): ?>
+                <?php if ($i > 0): ?> &gt; <?php endif; ?>
+                <?= htmlspecialchars($k['ad']) ?>
+            <?php endforeach; ?>
+        </div>
+    </div>
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
