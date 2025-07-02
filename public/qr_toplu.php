@@ -1,6 +1,7 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 require_once 'phpqrcode.php'; // Mevcut QR kütüphanen
 
 // Tüm konumları çek
