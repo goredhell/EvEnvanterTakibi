@@ -20,9 +20,11 @@ $admin_mi = $_SESSION['admin'] ?? 0;
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link" href="index.php">🏠 Ana Sayfa</a></li>
-        <li class="nav-item"><a class="nav-link" href="kullanicilar.php">👤 Kullanıcılar</a></li>
+        
         <?php if ($admin_mi): ?>
+		  <li class="nav-item"><a class="nav-link" href="kullanicilar.php">👤 Kullanıcılar</a></li>
           <li class="nav-item"><a class="nav-link" href="kullanici_ekle.php">➕ Kullanıcı Ekle</a></li>
+		  <li class="nav-item"><a class="nav-link" href="veritabani_yedekle.php">📥 Veritabanı Yedeği</a></li>
         <?php endif; ?>
         <li class="nav-item"><a class="nav-link" href="sifre_degistir.php">🔐 Şifre Değiştir</a></li>
         <li class="nav-item"><a class="nav-link" href="konumlar.php">📁 Konumlar</a></li>
