@@ -25,3 +25,4 @@ CREATE TABLE kullanicilar (
 INSERT INTO kullanicilar (kullanici_adi, sifre_hash, admin)
 VALUES ('admin', '$2y$10$vT6V1Chx4iQclR3tMxZPReCyVElWk8rp0EoJgr5g9F0Oa6LtKYu2S', TRUE);
 
+ALTER TABLE urunler ADD COLUMN adet INT DEFAULT NULL;

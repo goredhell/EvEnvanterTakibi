@@ -3,9 +3,9 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Tüm ürünleri konum adı ile birlikte al
+// Ürünleri konum adıyla birlikte al
 $stmt = $pdo->query("
-    SELECT u.id, u.ad, u.aciklama, k.ad AS konum_ad
+    SELECT u.id, u.ad, u.aciklama, u.adet, k.ad AS konum_ad
     FROM urunler u
     LEFT JOIN konumlar k ON u.konum_id = k.id
     ORDER BY u.ad
@@ -28,15 +28,23 @@ $urunler = $stmt->fetchAll();
                     <tr>
                         <th>Ürün Adı</th>
                         <th>Açıklama</th>
-                        <th>Konumu</th>
-                    </tr>
+						<th>Adet</th>
+                        <th>Konum</th>
+                        <th>İşlemler</th>
+					</tr>
                 </thead>
                 <tbody class="text-center">
                     <?php foreach ($urunler as $u): ?>
                         <tr>
                             <td><?= htmlspecialchars($u['ad']) ?></td>
                             <td><?= htmlspecialchars($u['aciklama']) ?: '-' ?></td>
+							<td><?= htmlspecialchars($u['adet'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($u['konum_ad'] ?: 'Tanımsız') ?></td>
+                            <td>
+                                <a href="urun_duzenle.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-outline-secondary me-1">Düzenle</a>
+                                <a href="urun_sil.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?')">Sil</a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

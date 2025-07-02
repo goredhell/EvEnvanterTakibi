@@ -56,23 +56,28 @@ $urunler = $stmt->fetchAll();
         <?php endif; ?>
     </div>
 
-    <div class="mb-4">
-        <h5>📄 Ürünler</h5>
-        <?php if (count($urunler) === 0): ?>
-            <div class="text-muted">Bu konumda ürün bulunmuyor.</div>
-        <?php else: ?>
-            <ul class="list-group">
-                <?php foreach ($urunler as $u): ?>
-                    <li class="list-group-item">
+<div class="mb-4">
+    <h5>📄 Ürünler</h5>
+    <?php if (count($urunler) === 0): ?>
+        <div class="text-muted">Bu konumda ürün bulunmuyor.</div>
+    <?php else: ?>
+        <ul class="list-group">
+            <?php foreach ($urunler as $u): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
                         <strong><?= htmlspecialchars($u['ad']) ?></strong>
                         <?php if ($u['aciklama']): ?>
                             – <?= htmlspecialchars($u['aciklama']) ?>
                         <?php endif; ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </div>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">
+                        <?= ($u['adet'] !== null) ? intval($u['adet']) . ' adet' : '—' ?>
+                    </span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</div>
 
     <a href="konumlar.php" class="btn btn-secondary">← Tüm Konumlara Dön</a>
 </div>

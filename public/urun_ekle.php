@@ -3,20 +3,21 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Konumları çek
+// Konumları al
 $stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad ASC");
-$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$konumlar = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ad = trim($_POST['ad'] ?? '');
     $aciklama = trim($_POST['aciklama'] ?? '');
+    $adet = is_numeric($_POST['adet'] ?? null) ? (int)$_POST['adet'] : null;
     $konum_id = $_POST['konum_id'] !== '' ? (int)$_POST['konum_id'] : null;
 
     if ($ad === '') {
         $hata = "Ürün adı zorunludur.";
     } else {
-        $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, konum_id) VALUES (?, ?, ?)");
-        $stmt->execute([$ad, $aciklama, $konum_id]);
+        $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, adet, konum_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$ad, $aciklama, $adet, $konum_id]);
         header("Location: urunler.php");
         exit;
     }
@@ -39,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-3">
             <label class="form-label">Açıklama (İsteğe Bağlı)</label>
             <textarea name="aciklama" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Adet (İsteğe Bağlı)</label>
+            <input type="number" name="adet" class="form-control" min="1">
         </div>
 
         <div class="mb-3">

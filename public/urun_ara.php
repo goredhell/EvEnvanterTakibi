@@ -8,7 +8,7 @@ $sonuclar = [];
 
 if ($arama !== '') {
     $stmt = $pdo->prepare("
-        SELECT u.ad AS urun_adi, u.aciklama, k.ad AS konum_adi, k.id AS konum_id
+        SELECT u.ad AS urun_adi, u.aciklama, u.adet, k.ad AS konum_adi, k.id AS konum_id
         FROM urunler u
         LEFT JOIN konumlar k ON u.konum_id = k.id
         WHERE u.ad LIKE ?
@@ -37,22 +37,28 @@ if ($arama !== '') {
         <?php else: ?>
             <div class="list-group">
                 <?php foreach ($sonuclar as $u): ?>
-                    <div class="list-group-item">
-                        <strong><?= htmlspecialchars($u['urun_adi']) ?></strong>
-                        <?php if ($u['aciklama']): ?>
-                            – <?= htmlspecialchars($u['aciklama']) ?>
-                        <?php endif; ?>
-                        <div class="mt-1 text-muted">
-                            📍 Konum:
-                            <?php if ($u['konum_adi']): ?>
-                                <a href="konum_detay.php?id=<?= $u['konum_id'] ?>" class="link-secondary">
-                                    <?= htmlspecialchars($u['konum_adi']) ?>
-                                </a>
-                            <?php else: ?>
-                                <em>Tanımsız</em>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+<div class="list-group-item">
+    <strong><?= htmlspecialchars($u['urun_adi']) ?></strong>
+    <?php if ($u['aciklama']): ?>
+        – <?= htmlspecialchars($u['aciklama']) ?>
+    <?php endif; ?>
+    
+    <?php if ($u['adet'] !== null): ?>
+        <div><span class="badge bg-primary"><?= intval($u['adet']) ?> adet</span></div>
+    <?php endif; ?>
+
+    <div class="mt-1 text-muted">
+        📍 Konum:
+        <?php if ($u['konum_adi']): ?>
+            <a href="konum_detay.php?id=<?= $u['konum_id'] ?>" class="link-secondary">
+                <?= htmlspecialchars($u['konum_adi']) ?>
+            </a>
+        <?php else: ?>
+            <em>Tanımsız</em>
+        <?php endif; ?>
+    </div>
+</div>
+
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
