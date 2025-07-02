@@ -25,7 +25,9 @@ $admin_mi = $_SESSION['admin'] ?? 0;
         <li class="nav-item"><a class="nav-link" href="sifre_degistir.php">🔐 Şifre Değiştir</a></li>
         <li class="nav-item"><a class="nav-link" href="konumlar.php">📁 Konumlar</a></li>
         <li class="nav-item"><a class="nav-link" href="urunler.php">📄 Ürünler</a></li>
+		<li class="nav-item"><a class="nav-link" href="qr_toplu.php">🔳 Toplu QR Yazdır</a></li>
         <li class="nav-item"><a class="nav-link" href="urun_ara.php">🔍 Ürün Ara</a></li>
+		<li class="nav-item"><a class="nav-link" href="arama.php">🔍 Detay Ara</a></li>
         <li class="nav-item"><a class="nav-link" href="logout.php">🚪 Çıkış Yap</a></li>
       </ul>
     </div>

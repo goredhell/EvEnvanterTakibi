@@ -34,6 +34,18 @@ include 'menu.php';
         </div>
 
         <div class="col-md-6 col-lg-4">
+            <a href="arama.php" class="btn btn-outline-info w-100 py-3">
+                🌐 Global Arama
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="qr_toplu.php" class="btn btn-outline-secondary w-100 py-3">
+                🖨️ Toplu QR Yazdır
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
             <a href="sifre_degistir.php" class="btn btn-outline-warning w-100 py-3">
                 🔐 Şifreni Değiştir
             </a>

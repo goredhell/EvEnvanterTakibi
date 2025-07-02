@@ -22,6 +22,7 @@ if (!$konum) {
 // QR verisi
 $base_url = "https://aytek.tr"; // kendi alan adını gir
 $url = $base_url . "/konum.php?token=" . urlencode($token);
+$url = $base_url . "/konum_mobil.php?token=" . urlencode($token);
 
 header('Content-Type: image/png');
 QRcode::png($url, false, QR_ECLEVEL_L, 8, 2); // kalite, boyut, kenarlık ayarları
