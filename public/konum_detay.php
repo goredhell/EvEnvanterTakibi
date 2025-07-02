@@ -5,74 +5,74 @@ include 'menu.php';
 
 $konum_id = $_GET['id'] ?? null;
 if (!$konum_id) {
-    echo "Konum ID eksik.";
+    echo '<div class="container mt-4"><div class="alert alert-danger">Geçersiz konum ID.</div></div>';
     exit;
 }
 
-// Bu konumu çek
+// Konumu çek
 $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE id = ?");
 $stmt->execute([$konum_id]);
 $konum = $stmt->fetch();
 
 if (!$konum) {
-    echo "Konum bulunamadı.";
+    echo '<div class="container mt-4"><div class="alert alert-warning">Konum bulunamadı.</div></div>';
     exit;
 }
 
-// Alt konumları çek
+// Alt konumlar
 $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE ebeveyn_id = ?");
 $stmt->execute([$konum_id]);
-$alt_konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$alt_konumlar = $stmt->fetchAll();
 
-// Bu konumun içindeki ürünleri çek
+// Ürünler
 $stmt = $pdo->prepare("SELECT * FROM urunler WHERE konum_id = ?");
 $stmt->execute([$konum_id]);
-$urunler = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$urunler = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title><?= htmlspecialchars($konum['ad']) ?> - Konum Detayı</title>
-</head>
-<body>
-    <h2>📦 <?= htmlspecialchars($konum['ad']) ?> – Konum Detayı</h2>
+<div class="container mt-4">
+    <h3>📦 <?= htmlspecialchars($konum['ad']) ?> – Konum Detayı</h3>
 
-    <p><strong>QR Token:</strong> <?= htmlspecialchars($konum['token']) ?></p>
-    <p><a href="qr.php?token=<?= urlencode($konum['token']) ?>">🔳 QR Kodu Göster</a></p>
+    <div class="mb-3">
+        <label class="form-label fw-bold">QR Bağlantısı:</label><br>
+        <a href="qr.php?token=<?= urlencode($konum['token']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
+            🔳 QR Kodunu Göster
+        </a>
+    </div>
 
-    <h3>📁 Alt Konumlar</h3>
-    <?php if (count($alt_konumlar) === 0): ?>
-        <p>Alt konum yok.</p>
-    <?php else: ?>
-        <ul>
-            <?php foreach ($alt_konumlar as $alt): ?>
-                <li>
-                    <a href="konum_detay.php?id=<?= $alt['id'] ?>">
+    <div class="mb-4">
+        <h5>📁 Alt Konumlar</h5>
+        <?php if (count($alt_konumlar) === 0): ?>
+            <div class="text-muted">Alt konum yok.</div>
+        <?php else: ?>
+            <ul class="list-group">
+                <?php foreach ($alt_konumlar as $alt): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
                         <?= htmlspecialchars($alt['ad']) ?>
-                    </a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
+                        <a href="konum_detay.php?id=<?= $alt['id'] ?>" class="btn btn-sm btn-outline-primary">Detay</a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
 
-    <h3>📦 Bu Konumdaki Ürünler</h3>
-    <?php if (count($urunler) === 0): ?>
-        <p>Ürün bulunamadı.</p>
-    <?php else: ?>
-        <ul>
-            <?php foreach ($urunler as $u): ?>
-                <li>
-                    <strong><?= htmlspecialchars($u['ad']) ?></strong>
-                    <?php if ($u['aciklama']): ?>
-                        – <?= htmlspecialchars($u['aciklama']) ?>
-                    <?php endif; ?>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
+    <div class="mb-4">
+        <h5>📄 Ürünler</h5>
+        <?php if (count($urunler) === 0): ?>
+            <div class="text-muted">Bu konumda ürün bulunmuyor.</div>
+        <?php else: ?>
+            <ul class="list-group">
+                <?php foreach ($urunler as $u): ?>
+                    <li class="list-group-item">
+                        <strong><?= htmlspecialchars($u['ad']) ?></strong>
+                        <?php if ($u['aciklama']): ?>
+                            – <?= htmlspecialchars($u['aciklama']) ?>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
 
-    <p><a href="konum.php">← Tüm Konumlara Dön</a></p>
-</body>
-</html>
+    <a href="konumlar.php" class="btn btn-secondary">← Tüm Konumlara Dön</a>
+</div>

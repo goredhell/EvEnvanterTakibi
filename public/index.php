@@ -1,38 +1,56 @@
 <?php
 include 'auth.php';
-include 'db.php';
 include 'menu.php';
-
-
-// En üst düzey konumları çek (ebeveyni olmayanlar)
-$stmt = $pdo->query("SELECT * FROM konumlar WHERE ebeveyn_id IS NULL ORDER BY ad");
-$konumlar = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Envanter Yönetimi</title>
-</head>
-<body>
-    <h2>Merhaba, <?= htmlspecialchars($_SESSION['kullanici_adi']) ?>!</h2>
+<div class="container mt-4">
+    <div class="alert alert-success">
+        👋 Merhaba, <strong><?= htmlspecialchars($_SESSION['kullanici_adi']) ?></strong>! Hoş geldiniz.
+    </div>
 
-    <p>
-        <a href="konum_ekle.php">+ Yeni Konum Ekle</a> |
-        <a href="logout.php">Çıkış Yap</a>
-    </p>
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <a href="konumlar.php" class="btn btn-outline-primary w-100 py-3">
+                📁 Konumları Görüntüle
+            </a>
+        </div>
 
-    <h3>Üst Düzey Konumlar</h3>
-    <ul>
-        <?php foreach ($konumlar as $konum): ?>
-            <li>
-                <a href="konum.php?token=<?= urlencode($konum['token']) ?>">
-                    <?= htmlspecialchars($konum['ad']) ?>
+        <div class="col-md-6 col-lg-4">
+            <a href="urunler.php" class="btn btn-outline-primary w-100 py-3">
+                📄 Ürünleri Görüntüle
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="urun_ekle.php" class="btn btn-outline-success w-100 py-3">
+                ➕ Yeni Ürün Ekle
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="urun_ara.php" class="btn btn-outline-secondary w-100 py-3">
+                🔍 Ürün Ara
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="sifre_degistir.php" class="btn btn-outline-warning w-100 py-3">
+                🔐 Şifreni Değiştir
+            </a>
+        </div>
+
+        <?php if ($_SESSION['admin']): ?>
+            <div class="col-md-6 col-lg-4">
+                <a href="kullanicilar.php" class="btn btn-outline-dark w-100 py-3">
+                    👥 Kullanıcı Yönetimi
                 </a>
-                [QR: <a href="qr.php?token=<?= urlencode($konum['token']) ?>" target="_blank">Görüntüle</a>]
-            </li>
-        <?php endforeach; ?>
-    </ul>
-</body>
-</html>
+            </div>
+        <?php endif; ?>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="logout.php" class="btn btn-outline-danger w-100 py-3">
+                🚪 Oturumu Kapat
+            </a>
+        </div>
+    </div>
+</div>

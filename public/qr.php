@@ -1,27 +1,33 @@
 <?php
 include 'auth.php';
 include 'db.php';
-include 'phpqrcode.php';  // kütüphane dosyasını dahil et
+include 'menu.php';
 
 $token = $_GET['token'] ?? '';
 
 if (!$token) {
-    echo "Geçersiz bağlantı.";
+    echo '<div class="container mt-4"><div class="alert alert-danger">Geçersiz bağlantı.</div></div>';
     exit;
 }
 
+// Konumu al
 $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE token = ?");
 $stmt->execute([$token]);
 $konum = $stmt->fetch();
 
 if (!$konum) {
-    echo "Konum bulunamadı.";
+    echo '<div class="container mt-4"><div class="alert alert-warning">Konum bulunamadı.</div></div>';
     exit;
 }
+?>
 
-$base_url = "https://aytek.tr";
-$url = $base_url . "/konum.php?token=" . urlencode($konum['token']);
+<div class="container mt-4 text-center">
+    <h3>🔳 <?= htmlspecialchars($konum['ad']) ?> – QR Kod</h3>
 
-header('Content-Type: image/png');
-\QRcode::png($url, false, QR_ECLEVEL_L, 8, 2);
-exit;
+    <img class="my-4 border border-dark rounded"
+         src="qr_goster.php?token=<?= urlencode($token) ?>"
+         alt="QR Kod">
+
+    <p class="text-muted">Bu QR kodu ilgili kutuya yapıştırarak hızlı erişim sağlayabilirsiniz.</p>
+    <a href="konum_detay.php?id=<?= $konum['id'] ?>" class="btn btn-secondary">← Geri Dön</a>
+</div>

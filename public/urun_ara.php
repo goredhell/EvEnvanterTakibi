@@ -3,74 +3,58 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Tüm konumları çek (hiyerarşi için)
-$stmt = $pdo->query("SELECT id, ad, ebeveyn_id FROM konumlar");
-$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$konumMap = [];
-foreach ($konumlar as $k) {
-    $konumMap[$k['id']] = $k;
-}
-
-// Konum yolunu oluştur
-function konumYolu($konum_id) {
-    global $konumMap;
-    $parcalar = [];
-    while ($konum_id && isset($konumMap[$konum_id])) {
-        array_unshift($parcalar, $konumMap[$konum_id]['ad']);
-        $konum_id = $konumMap[$konum_id]['ebeveyn_id'];
-    }
-    return implode(" → ", $parcalar);
-}
-
-// Arama
 $arama = trim($_GET['q'] ?? '');
 $sonuclar = [];
 
 if ($arama !== '') {
     $stmt = $pdo->prepare("
-        SELECT * FROM urunler 
-        WHERE ad LIKE ?
-        ORDER BY ad
+        SELECT u.ad AS urun_adi, u.aciklama, k.ad AS konum_adi, k.id AS konum_id
+        FROM urunler u
+        LEFT JOIN konumlar k ON u.konum_id = k.id
+        WHERE u.ad LIKE ?
+        ORDER BY u.ad
     ");
     $stmt->execute(['%' . $arama . '%']);
-    $sonuclar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $sonuclar = $stmt->fetchAll();
 }
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Ürün Arama</title>
-</head>
-<body>
-    <h2>🔍 Ürün Arama</h2>
+<div class="container mt-4">
+    <h3>🔍 Ürün Ara</h3>
 
-    <form method="get">
-        <input type="text" name="q" value="<?= htmlspecialchars($arama) ?>" placeholder="örn: kablo, matkap, kitap..." size="40">
-        <button type="submit">Ara</button>
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Ürün adını girin..." value="<?= htmlspecialchars($arama) ?>" required>
+            <button type="submit" class="btn btn-primary">Ara</button>
+        </div>
     </form>
 
     <?php if ($arama !== ''): ?>
-        <h3>Sonuçlar:</h3>
+        <h5 class="mb-3">Arama Sonuçları: "<strong><?= htmlspecialchars($arama) ?></strong>"</h5>
+
         <?php if (count($sonuclar) === 0): ?>
-            <p>Sonuç bulunamadı.</p>
+            <div class="alert alert-warning">Ürün bulunamadı.</div>
         <?php else: ?>
-            <table border="1" cellpadding="6">
-                <tr>
-                    <th>Ürün</th>
-                    <th>Açıklama</th>
-                    <th>Konum</th>
-                </tr>
+            <div class="list-group">
                 <?php foreach ($sonuclar as $u): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($u['ad']) ?></td>
-                        <td><?= nl2br(htmlspecialchars($u['aciklama'])) ?></td>
-                        <td><?= konumYolu($u['konum_id']) ?></td>
-                    </tr>
+                    <div class="list-group-item">
+                        <strong><?= htmlspecialchars($u['urun_adi']) ?></strong>
+                        <?php if ($u['aciklama']): ?>
+                            – <?= htmlspecialchars($u['aciklama']) ?>
+                        <?php endif; ?>
+                        <div class="mt-1 text-muted">
+                            📍 Konum:
+                            <?php if ($u['konum_adi']): ?>
+                                <a href="konum_detay.php?id=<?= $u['konum_id'] ?>" class="link-secondary">
+                                    <?= htmlspecialchars($u['konum_adi']) ?>
+                                </a>
+                            <?php else: ?>
+                                <em>Tanımsız</em>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
-            </table>
+            </div>
         <?php endif; ?>
     <?php endif; ?>
-</body>
-</html>
+</div>

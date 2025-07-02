@@ -1,17 +1,21 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eski = $_POST['eski'] ?? '';
     $yeni = $_POST['yeni'] ?? '';
+    $yeni2 = $_POST['yeni2'] ?? '';
 
     $stmt = $pdo->prepare("SELECT * FROM kullanicilar WHERE id = ?");
     $stmt->execute([$_SESSION['kullanici_id']]);
     $kullanici = $stmt->fetch();
 
     if (!$kullanici || !password_verify($eski, $kullanici['sifre_hash'])) {
-        $hata = "Eski şifre hatalı!";
+        $hata = "Eski şifre hatalı.";
+    } elseif ($yeni !== $yeni2) {
+        $hata = "Yeni şifreler uyuşmuyor.";
     } elseif (strlen($yeni) < 5) {
         $hata = "Yeni şifre en az 5 karakter olmalı.";
     } else {
@@ -23,28 +27,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Şifre Değiştir</title></head>
-<body>
-<h2>Şifreni Değiştir</h2>
+<div class="container mt-4">
+    <h3>🔐 Şifre Değiştir</h3>
 
-<form method="post">
-    <label>Eski Şifre:</label><br>
-    <input type="password" name="eski" required><br><br>
+    <?php if (isset($hata)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
+    <?php elseif (isset($mesaj)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($mesaj) ?></div>
+    <?php endif; ?>
 
-    <label>Yeni Şifre:</label><br>
-    <input type="password" name="yeni" required><br><br>
+    <form method="post" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label">Eski Şifre</label>
+            <input type="password" name="eski" class="form-control" required>
+        </div>
 
-    <button type="submit">Güncelle</button>
-</form>
+        <div class="mb-3">
+            <label class="form-label">Yeni Şifre</label>
+            <input type="password" name="yeni" class="form-control" required>
+        </div>
 
-<p><a href="kullanicilar.php">← Geri Dön</a></p>
+        <div class="mb-3">
+            <label class="form-label">Yeni Şifre (Tekrar)</label>
+            <input type="password" name="yeni2" class="form-control" required>
+        </div>
 
-<?php if (isset($hata)): ?>
-    <p style="color:red;"><?= htmlspecialchars($hata) ?></p>
-<?php elseif (isset($mesaj)): ?>
-    <p style="color:green;"><?= htmlspecialchars($mesaj) ?></p>
-<?php endif; ?>
-</body>
-</html>
+        <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
+        <a href="index.php" class="btn btn-secondary">İptal</a>
+    </form>
+</div>

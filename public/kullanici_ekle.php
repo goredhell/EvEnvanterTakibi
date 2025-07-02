@@ -1,17 +1,17 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
-// Sadece admin erişebilir
 if ($_SESSION['admin'] != 1) {
-    echo "Bu sayfayı görüntüleme yetkiniz yok.";
+    echo '<div class="container mt-5"><div class="alert alert-danger">Bu sayfaya erişim yetkiniz yok.</div></div>';
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kadi = trim($_POST['kullanici_adi'] ?? '');
     $sifre = $_POST['sifre'] ?? '';
-    $admin = ($_SESSION['admin'] == 1 && isset($_POST['admin'])) ? 1 : 0;
+    $admin = isset($_POST['admin']) ? 1 : 0;
 
     if (strlen($kadi) < 3 || strlen($sifre) < 5) {
         $hata = "Kullanıcı adı veya şifre çok kısa.";
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM kullanicilar WHERE kullanici_adi = ?");
         $stmt->execute([$kadi]);
         if ($stmt->fetchColumn() > 0) {
-            $hata = "Bu kullanıcı adı zaten alınmış.";
+            $hata = "Bu kullanıcı adı zaten kullanılıyor.";
         } else {
             $hash = password_hash($sifre, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO kullanicilar (kullanici_adi, sifre_hash, admin) VALUES (?, ?, ?)");
@@ -31,33 +31,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Yeni Kullanıcı Ekle</title>
-</head>
-<body>
-    <h2>Yeni Kullanıcı Ekle</h2>
-
-    <form method="post">
-        <label>Kullanıcı Adı:</label><br>
-        <input type="text" name="kullanici_adi" required><br><br>
-
-        <label>Şifre:</label><br>
-        <input type="password" name="sifre" required><br><br>
-
-        <?php if ($_SESSION['admin'] == 1): ?>
-            <label><input type="checkbox" name="admin" value="1"> Admin Yetkisi</label><br><br>
-        <?php endif; ?>
-
-        <button type="submit">Kaydet</button>
-    </form>
-
-    <p><a href="kullanicilar.php">← Geri</a></p>
+<div class="container mt-4">
+    <h3>➕ Yeni Kullanıcı Ekle</h3>
 
     <?php if (isset($hata)): ?>
-        <p style="color:red;"><?= htmlspecialchars($hata) ?></p>
+        <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
     <?php endif; ?>
-</body>
-</html>
+
+    <form method="post" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label">Kullanıcı Adı</label>
+            <input type="text" name="kullanici_adi" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Şifre</label>
+            <input type="password" name="sifre" class="form-control" required>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" name="admin" id="admin">
+            <label class="form-check-label" for="admin">Admin Yetkisi</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a href="kullanicilar.php" class="btn btn-secondary">İptal</a>
+    </form>
+</div>

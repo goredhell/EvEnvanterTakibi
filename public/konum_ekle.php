@@ -1,58 +1,52 @@
 <?php
 include 'auth.php';
 include 'db.php';
+include 'menu.php';
 
-// POST isteği geldiğinde konumu ekle
+// Tüm konumlar (ebeveyn seçimi için)
+$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
+$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ad = $_POST['ad'] ?? '';
-    $ebeveyn_id = $_POST['ebeveyn_id'] ?? null;
+    $ad = trim($_POST['ad'] ?? '');
+    $ebeveyn_id = $_POST['ebeveyn_id'] !== '' ? (int)$_POST['ebeveyn_id'] : null;
 
-    if (empty($ad)) {
-        $hata = "Konum adı boş bırakılamaz.";
+    if ($ad === '') {
+        $hata = "Konum adı boş olamaz.";
     } else {
-        // Token oluştur (örnek: uniqid() + random)
-        $token = bin2hex(random_bytes(8));
-
+        $token = bin2hex(random_bytes(16));
         $stmt = $pdo->prepare("INSERT INTO konumlar (ad, ebeveyn_id, token) VALUES (?, ?, ?)");
-        $stmt->execute([$ad, $ebeveyn_id ?: null, $token]);
-
-        header("Location: index.php");
+        $stmt->execute([$ad, $ebeveyn_id, $token]);
+        header("Location: konumlar.php");
         exit;
     }
 }
-
-// Tüm konumları çek — seçim listesi için
-$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
-$konumlar = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Yeni Konum Ekle</title>
-</head>
-<body>
-    <h2>Yeni Konum Ekle</h2>
-    <form method="post">
-        <label>Konum Adı:</label><br>
-        <input type="text" name="ad" required><br><br>
-
-        <label>Hangi konumun içinde (isteğe bağlı):</label><br>
-        <select name="ebeveyn_id">
-            <option value="">-- Üst Düzey Konum --</option>
-            <?php foreach ($konumlar as $konum): ?>
-                <option value="<?= $konum['id'] ?>"><?= htmlspecialchars($konum['ad']) ?></option>
-            <?php endforeach; ?>
-        </select><br><br>
-
-        <button type="submit">Ekle</button>
-    </form>
-
-    <p><a href="index.php">← Geri Dön</a></p>
+<div class="container mt-4">
+    <h3>➕ Yeni Konum Ekle</h3>
 
     <?php if (isset($hata)): ?>
-        <p style="color:red;"><?= htmlspecialchars($hata) ?></p>
+        <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
     <?php endif; ?>
-</body>
-</html>
+
+    <form method="post" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label">Konum Adı</label>
+            <input type="text" name="ad" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">İçinde Bulunduğu Konum (İsteğe Bağlı)</label>
+            <select name="ebeveyn_id" class="form-select">
+                <option value="">— Üst konum yok —</option>
+                <?php foreach ($konumlar as $k): ?>
+                    <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['ad']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a href="konumlar.php" class="btn btn-secondary">İptal</a>
+    </form>
+</div>

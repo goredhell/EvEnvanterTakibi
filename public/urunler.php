@@ -3,67 +3,44 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Tüm ürünleri ve konumlarını al
+// Tüm ürünleri konum adı ile birlikte al
 $stmt = $pdo->query("
-    SELECT urunler.id, urunler.ad AS urun_adi, urunler.aciklama, urunler.konum_id,
-           k1.ad AS konum_adi, k1.ebeveyn_id
-    FROM urunler
-    LEFT JOIN konumlar k1 ON urunler.konum_id = k1.id
+    SELECT u.id, u.ad, u.aciklama, k.ad AS konum_ad
+    FROM urunler u
+    LEFT JOIN konumlar k ON u.konum_id = k.id
+    ORDER BY u.ad
 ");
-$urunler = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Konum hiyerarşisini kurmak için tüm konumları al
-$stmt = $pdo->query("SELECT id, ad, ebeveyn_id FROM konumlar");
-$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$konumMap = [];
-foreach ($konumlar as $k) {
-    $konumMap[$k['id']] = $k;
-}
-
-// Konum yolu bulucu (recursive)
-function konumYolu($konum_id) {
-    global $konumMap;
-    $parcalar = [];
-    while ($konum_id && isset($konumMap[$konum_id])) {
-        array_unshift($parcalar, $konumMap[$konum_id]['ad']);
-        $konum_id = $konumMap[$konum_id]['ebeveyn_id'];
-    }
-    return implode(" → ", $parcalar);
-}
+$urunler = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Ürün Listesi</title>
-</head>
-<body>
-    <h2>📦 Ürünler</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>📄 Ürünler</h3>
+        <a href="urun_ekle.php" class="btn btn-success">➕ Yeni Ürün Ekle</a>
+    </div>
 
-    <p><a href="urun_ekle.php">+ Yeni Ürün Ekle</a></p>
-
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>Ürün Adı</th>
-            <th>Açıklama</th>
-            <th>Konum</th>
-            <?php if ($_SESSION['admin'] == 1): ?>
-            <th>İşlem</th>
-            <?php endif; ?>
-        </tr>
-        <?php foreach ($urunler as $u): ?>
-            <tr>
-                <td><?= htmlspecialchars($u['urun_adi']) ?></td>
-                <td><?= nl2br(htmlspecialchars($u['aciklama'])) ?></td>
-                <td><?= konumYolu($u['konum_id']) ?></td>
-                <?php if ($_SESSION['admin'] == 1): ?>
-                <td>
-                    <a href="urun_sil.php?id=<?= $u['id'] ?>" onclick="return confirm('Silinsin mi?')">🗑 Sil</a>
-                </td>
-                <?php endif; ?>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-</body>
-</html>
+    <?php if (count($urunler) === 0): ?>
+        <div class="alert alert-info">Henüz kayıtlı ürün bulunmuyor.</div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Ürün Adı</th>
+                        <th>Açıklama</th>
+                        <th>Konumu</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    <?php foreach ($urunler as $u): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($u['ad']) ?></td>
+                            <td><?= htmlspecialchars($u['aciklama']) ?: '-' ?></td>
+                            <td><?= htmlspecialchars($u['konum_ad'] ?: 'Tanımsız') ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
