@@ -3,50 +3,50 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Tüm konumları çek
-$stmt = $pdo->query("SELECT * FROM konumlar ORDER BY ad ASC");
-$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Grupla
-$gruplar = [];
-foreach ($konumlar as $k) {
-    $gruplar[$k['ebeveyn_id']][] = $k;
-}
-
-// Hiyerarşi yazdıran fonksiyon
-function yazKonumlar($ebeveyn_id = null, $seviye = 0) {
-    global $gruplar;
-    if (!isset($gruplar[$ebeveyn_id])) return;
-
-    foreach ($gruplar[$ebeveyn_id] as $konum) {
-        echo '<tr>';
-        echo '<td>' . str_repeat('— ', $seviye) . htmlspecialchars($konum['ad']) . '</td>';
-        echo '<td class="text-center">';
-        echo '<a href="konum_detay.php?id=' . $konum['id'] . '" class="btn btn-sm btn-outline-primary me-1">Detay</a>';
-        echo '<a href="konum_duzenle.php?id=' . $konum['id'] . '" class="btn btn-sm btn-outline-secondary me-1">Düzenle</a>';
-        echo '<a href="konum_sil.php?id=' . $konum['id'] . '" class="btn btn-sm btn-outline-danger" onclick="return confirm(\'Silmek istediğine emin misin?\')">Sil</a>';
-        echo '</td>';
-        echo '</tr>';
-        yazKonumlar($konum['id'], $seviye + 1);
-    }
-}
+// Konumları çek
+$stmt = $pdo->prepare("SELECT * FROM konumlar WHERE ebeveyn_id IS NULL ORDER BY ad");
+$stmt->execute();
+$konumlar = $stmt->fetchAll();
 ?>
 
-<div class="container mt-4">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Konumlar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>📁 Konumlar</h3>
-        <a href="konum_ekle.php" class="btn btn-success">➕ Yeni Konum Ekle</a>
+        <h4 class="mb-0">📁 Tüm Konumlar</h4>
+        <a href="konum_ekle.php" class="btn btn-success">➕ Yeni Konum</a>
     </div>
 
-    <table class="table table-bordered table-striped align-middle">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>Konum Adı</th>
-                <th>İşlemler</th>
-            </tr>
-        </thead>
-        <tbody class="text-center">
-            <?php yazKonumlar(); ?>
-        </tbody>
-    </table>
+    <?php if (count($konumlar) === 0): ?>
+        <div class="alert alert-warning">Henüz konum tanımlanmamış.</div>
+    <?php else: ?>
+        <div class="list-group">
+            <?php foreach ($konumlar as $konum): ?>
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <a href="konum_detay.php?id=<?= $konum['id'] ?>" class="fw-bold text-decoration-none">
+                                <?= htmlspecialchars($konum['ad']) ?>
+                            </a>
+                        </div>
+                        <div class="btn-group mt-2 mt-md-0">
+                            <a href="konum_duzenle.php?id=<?= $konum['id'] ?>" class="btn btn-sm btn-outline-secondary">✏️</a>
+                            <a href="konum_sil.php?id=<?= $konum['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bu konumu silmek istediğinize emin misiniz?');">🗑️</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </div>
+
+</body>
+</html>

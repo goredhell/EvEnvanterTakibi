@@ -23,7 +23,7 @@ $hata = $_GET['hata'] ?? null;
             <div class="alert alert-danger">Kullanıcı adı veya şifre hatalı.</div>
         <?php endif; ?>
 
-        <form method="post" action="login_kontrol.php">
+        <form method="post" action="login_post.php">
             <div class="mb-3">
                 <label for="kullanici_adi" class="form-label">Kullanıcı Adı</label>
                 <input type="text" name="kullanici_adi" id="kullanici_adi" class="form-control" required autofocus>
