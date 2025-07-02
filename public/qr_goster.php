@@ -22,6 +22,7 @@ if (!$konum) {
 // QR verisi
 $base_url = "https://aytek.tr"; // kendi alan adını gir
 $url = $base_url . "/konum.php?token=" . urlencode($token);
+$base_url = "https://ALANADIN.COM"; // kendi alan adını gir
 $url = $base_url . "/konum_mobil.php?token=" . urlencode($token);
 
 header('Content-Type: image/png');
