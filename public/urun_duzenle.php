@@ -9,7 +9,7 @@ if (!$id) {
     exit;
 }
 
-// Ürünü al
+// Ürünü çek
 $stmt = $pdo->prepare("SELECT * FROM urunler WHERE id = ?");
 $stmt->execute([$id]);
 $urun = $stmt->fetch();
@@ -19,63 +19,96 @@ if (!$urun) {
     exit;
 }
 
-// Konumlar
-$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad ASC");
+// Konumları çek
+$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
 $konumlar = $stmt->fetchAll();
+
+$hata = '';
+$basari = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ad = trim($_POST['ad'] ?? '');
     $aciklama = trim($_POST['aciklama'] ?? '');
-    $konum_id = $_POST['konum_id'] !== '' ? (int)$_POST['konum_id'] : null;
-	$adet = is_numeric($_POST['adet'] ?? null) ? (int)$_POST['adet'] : null;
+    $adet = trim($_POST['adet'] ?? '');
+    $konum_id = $_POST['konum_id'] ?? null;
 
     if ($ad === '') {
-        $hata = "Ürün adı zorunludur.";
+        $hata = 'Ürün adı boş olamaz.';
     } else {
-        $stmt = $pdo->prepare("UPDATE urunler SET ad = ?, aciklama = ?, konum_id = ?, adet = ? WHERE id = ?");
-		$stmt->execute([$ad, $aciklama, $konum_id, $adet, $id]);
-        header("Location: urunler.php");
-        exit;
+        $stmt = $pdo->prepare("UPDATE urunler SET ad = ?, aciklama = ?, adet = ?, konum_id = ? WHERE id = ?");
+        $stmt->execute([
+            $ad,
+            $aciklama,
+            $adet !== '' ? $adet : null,
+            $konum_id ?: null,
+            $id
+        ]);
+        $basari = 'Ürün başarıyla güncellendi.';
+        // Güncel bilgileri tekrar al
+        $stmt = $pdo->prepare("SELECT * FROM urunler WHERE id = ?");
+        $stmt->execute([$id]);
+        $urun = $stmt->fetch();
     }
 }
 ?>
 
-<div class="container mt-4">
-    <h3>✏️ Ürünü Düzenle</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ürün Düzenle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-    <?php if (isset($hata)): ?>
+<div class="container py-4">
+    <h4 class="mb-4">✏️ Ürünü Düzenle</h4>
+
+    <?php if ($hata): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
+    <?php elseif ($basari): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($basari) ?></div>
     <?php endif; ?>
 
-    <form method="post">
-        <div class="mb-3">
-            <label class="form-label">Ürün Adı</label>
-            <input type="text" name="ad" class="form-control" value="<?= htmlspecialchars($urun['ad']) ?>" required>
+    <form method="post" class="row g-3">
+        <div class="col-12">
+            <label for="ad" class="form-label">Ürün Adı <span class="text-danger">*</span></label>
+            <input type="text" name="ad" id="ad" class="form-control" value="<?= htmlspecialchars($urun['ad']) ?>" required>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Açıklama</label>
-            <textarea name="aciklama" class="form-control" rows="3"><?= htmlspecialchars($urun['aciklama']) ?></textarea>
+        <div class="col-12">
+            <label for="aciklama" class="form-label">Açıklama</label>
+            <textarea name="aciklama" id="aciklama" class="form-control" rows="3"><?= htmlspecialchars($urun['aciklama']) ?></textarea>
         </div>
-		
-		<div class="mb-3">
-			<label class="form-label">Adet (İsteğe Bağlı)</label>
-			<input type="number" name="adet" class="form-control" min="1" value="<?= htmlspecialchars($urun['adet']) ?>">
-		</div>
 
-        <div class="mb-3">
-            <label class="form-label">Konum</label>
-            <select name="konum_id" class="form-select">
+        <div class="col-12 col-md-6">
+            <label for="adet" class="form-label">Adet</label>
+            <input type="number" name="adet" id="adet" class="form-control" value="<?= htmlspecialchars($urun['adet']) ?>">
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="konum_id" class="form-label">Konum</label>
+            <select name="konum_id" id="konum_id" class="form-select">
                 <option value="">— Konum Seçin —</option>
-                <?php foreach ($konumlar as $k): ?>
-                    <option value="<?= $k['id'] ?>" <?= ($urun['konum_id'] == $k['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($k['ad']) ?>
+                <?php foreach ($konumlar as $konum): ?>
+                    <option value="<?= $konum['id'] ?>" <?= $konum['id'] == $urun['konum_id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($konum['ad']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Kaydet</button>
-        <a href="urunler.php" class="btn btn-secondary">İptal</a>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary w-100">💾 Kaydet</button>
+        </div>
     </form>
+
+    <div class="mt-4">
+        <a href="urunler.php" class="btn btn-outline-secondary">← Ürün Listesine Dön</a>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -19,8 +19,18 @@ if ($arama !== '') {
 }
 ?>
 
-<div class="container mt-4">
-    <h3>🔍 Ürün Ara</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ürün Ara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <h4 class="mb-4">🔍 Ürün Ara</h4>
 
     <form method="get" class="mb-4">
         <div class="input-group">
@@ -37,30 +47,33 @@ if ($arama !== '') {
         <?php else: ?>
             <div class="list-group">
                 <?php foreach ($sonuclar as $u): ?>
-<div class="list-group-item">
-    <strong><?= htmlspecialchars($u['urun_adi']) ?></strong>
-    <?php if ($u['aciklama']): ?>
-        – <?= htmlspecialchars($u['aciklama']) ?>
-    <?php endif; ?>
-    
-    <?php if ($u['adet'] !== null): ?>
-        <div><span class="badge bg-primary"><?= intval($u['adet']) ?> adet</span></div>
-    <?php endif; ?>
+                    <div class="list-group-item">
+                        <strong><?= htmlspecialchars($u['urun_adi']) ?></strong>
+                        <?php if ($u['aciklama']): ?>
+                            – <?= htmlspecialchars($u['aciklama']) ?>
+                        <?php endif; ?>
 
-    <div class="mt-1 text-muted">
-        📍 Konum:
-        <?php if ($u['konum_adi']): ?>
-            <a href="konum_detay.php?id=<?= $u['konum_id'] ?>" class="link-secondary">
-                <?= htmlspecialchars($u['konum_adi']) ?>
-            </a>
-        <?php else: ?>
-            <em>Tanımsız</em>
-        <?php endif; ?>
-    </div>
-</div>
+                        <?php if (!empty($u['adet'])): ?>
+                            <div class="text-muted">Adet: <?= htmlspecialchars($u['adet']) ?></div>
+                        <?php endif; ?>
 
+                        <div class="mt-1 text-muted">
+                            📍 Konum:
+                            <?php if ($u['konum_adi']): ?>
+                                <a href="konum_detay.php?id=<?= $u['konum_id'] ?>" class="link-secondary">
+                                    <?= htmlspecialchars($u['konum_adi']) ?>
+                                </a>
+                            <?php else: ?>
+                                <em>Tanımsız</em>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
     <?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

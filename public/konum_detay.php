@@ -30,13 +30,23 @@ $stmt->execute([$konum_id]);
 $urunler = $stmt->fetchAll();
 ?>
 
-<div class="container mt-4">
-    <h3>📦 <?= htmlspecialchars($konum['ad']) ?> – Konum Detayı</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= htmlspecialchars($konum['ad']) ?> - Konum Detayı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">QR Bağlantısı:</label><br>
+<div class="container py-4">
+    <h4 class="mb-4">📦 <?= htmlspecialchars($konum['ad']) ?> – Konum Detayı</h4>
+
+    <div class="mb-4">
+        <label class="form-label fw-bold">🔳 QR Bağlantısı:</label><br>
         <a href="qr.php?token=<?= urlencode($konum['token']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
-            🔳 QR Kodunu Göster
+            QR Kodunu Göster
         </a>
     </div>
 
@@ -45,39 +55,55 @@ $urunler = $stmt->fetchAll();
         <?php if (count($alt_konumlar) === 0): ?>
             <div class="text-muted">Alt konum yok.</div>
         <?php else: ?>
-            <ul class="list-group">
+            <div class="list-group">
                 <?php foreach ($alt_konumlar as $alt): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <?= htmlspecialchars($alt['ad']) ?>
-                        <a href="konum_detay.php?id=<?= $alt['id'] ?>" class="btn btn-sm btn-outline-primary">Detay</a>
-                    </li>
+                    <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <?= htmlspecialchars($alt['ad']) ?>
+                        </div>
+                        <div class="btn-group">
+                            <a href="konum_detay.php?id=<?= $alt['id'] ?>" class="btn btn-sm btn-outline-primary">Detay</a>
+                            <a href="konum_duzenle.php?id=<?= $alt['id'] ?>" class="btn btn-sm btn-outline-secondary">✏️</a>
+                            <a href="konum_sil.php?id=<?= $alt['id'] ?>" class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Bu alt konumu silmek istediğinize emin misiniz?');">🗑️</a>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
-            </ul>
+            </div>
         <?php endif; ?>
     </div>
 
-<div class="mb-4">
-    <h5>📄 Ürünler</h5>
-    <?php if (count($urunler) === 0): ?>
-        <div class="text-muted">Bu konumda ürün bulunmuyor.</div>
-    <?php else: ?>
-        <ul class="list-group">
-            <?php foreach ($urunler as $u): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong><?= htmlspecialchars($u['ad']) ?></strong>
-                        <?php if ($u['aciklama']): ?>
-                            – <?= htmlspecialchars($u['aciklama']) ?>
-                        <?php endif; ?>
+    <div class="mb-4">
+        <h5>📄 Ürünler</h5>
+        <?php if (count($urunler) === 0): ?>
+            <div class="text-muted">Bu konumda ürün bulunmuyor.</div>
+        <?php else: ?>
+            <div class="list-group">
+                <?php foreach ($urunler as $u): ?>
+                    <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
+                        <div>
+                            <strong><?= htmlspecialchars($u['ad']) ?></strong>
+                            <?php if ($u['aciklama']): ?>
+                                – <?= htmlspecialchars($u['aciklama']) ?>
+                            <?php endif; ?>
+                            <?php if (!empty($u['adet'])): ?>
+                                <div class="text-muted">Adet: <?= htmlspecialchars($u['adet']) ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="btn-group mt-2 mt-md-0">
+                            <a href="urun_duzenle.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-outline-secondary">✏️</a>
+                            <a href="urun_sil.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?');">🗑️</a>
+                        </div>
                     </div>
-                    <span class="badge bg-primary rounded-pill">
-                        <?= ($u['adet'] !== null) ? intval($u['adet']) . ' adet' : '—' ?>
-                    </span>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
-</div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <a href="konumlar.php" class="btn btn-secondary">← Tüm Konumlara Dön</a>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

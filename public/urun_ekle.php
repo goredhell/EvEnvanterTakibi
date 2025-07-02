@@ -3,61 +3,84 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Konumları al
-$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad ASC");
+$hata = '';
+$basari = '';
+
+// Konumları çek
+$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
 $konumlar = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ad = trim($_POST['ad'] ?? '');
     $aciklama = trim($_POST['aciklama'] ?? '');
-    $adet = is_numeric($_POST['adet'] ?? null) ? (int)$_POST['adet'] : null;
-    $konum_id = $_POST['konum_id'] !== '' ? (int)$_POST['konum_id'] : null;
+    $adet = trim($_POST['adet'] ?? '');
+    $konum_id = $_POST['konum_id'] ?? null;
 
     if ($ad === '') {
-        $hata = "Ürün adı zorunludur.";
+        $hata = 'Ürün adı boş olamaz.';
     } else {
         $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, adet, konum_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$ad, $aciklama, $adet, $konum_id]);
-        header("Location: urunler.php");
-        exit;
+        $stmt->execute([$ad, $aciklama, $adet !== '' ? $adet : null, $konum_id ?: null]);
+        $basari = 'Ürün başarıyla eklendi.';
     }
 }
 ?>
 
-<div class="container mt-4">
-    <h3>➕ Yeni Ürün Ekle</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Yeni Ürün Ekle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-    <?php if (isset($hata)): ?>
+<div class="container py-4">
+    <h4 class="mb-4">➕ Yeni Ürün Ekle</h4>
+
+    <?php if ($hata): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
+    <?php elseif ($basari): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($basari) ?></div>
     <?php endif; ?>
 
-    <form method="post" class="mt-3">
-        <div class="mb-3">
-            <label class="form-label">Ürün Adı</label>
-            <input type="text" name="ad" class="form-control" required>
+    <form method="post" class="row g-3">
+        <div class="col-12">
+            <label for="ad" class="form-label">Ürün Adı <span class="text-danger">*</span></label>
+            <input type="text" name="ad" id="ad" class="form-control" required>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Açıklama (İsteğe Bağlı)</label>
-            <textarea name="aciklama" class="form-control" rows="3"></textarea>
+        <div class="col-12">
+            <label for="aciklama" class="form-label">Açıklama</label>
+            <textarea name="aciklama" id="aciklama" class="form-control" rows="3"></textarea>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Adet (İsteğe Bağlı)</label>
-            <input type="number" name="adet" class="form-control" min="1">
+        <div class="col-12 col-md-6">
+            <label for="adet" class="form-label">Adet (isteğe bağlı)</label>
+            <input type="number" name="adet" id="adet" class="form-control" min="0">
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Konum Seç</label>
-            <select name="konum_id" class="form-select">
+        <div class="col-12 col-md-6">
+            <label for="konum_id" class="form-label">Konum</label>
+            <select name="konum_id" id="konum_id" class="form-select">
                 <option value="">— Konum Seçin —</option>
-                <?php foreach ($konumlar as $k): ?>
-                    <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['ad']) ?></option>
+                <?php foreach ($konumlar as $konum): ?>
+                    <option value="<?= $konum['id'] ?>"><?= htmlspecialchars($konum['ad']) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Kaydet</button>
-        <a href="urunler.php" class="btn btn-secondary">İptal</a>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary w-100">💾 Kaydet</button>
+        </div>
     </form>
+
+    <div class="mt-4">
+        <a href="urunler.php" class="btn btn-outline-secondary">← Ürün Listesine Dön</a>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
