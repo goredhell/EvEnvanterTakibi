@@ -3,10 +3,22 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-// Tüm konumlar (ebeveyn seçimi için)
-$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
-$konumlar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Hiyerarşik konumları yazdıran fonksiyon
+function konumlariListeleAgac($pdo, $ebeveyn_id = null, $seviye = 0) {
+    $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE ebeveyn_id " . ($ebeveyn_id === null ? "IS NULL" : "= ?") . " ORDER BY ad");
+    $stmt->execute($ebeveyn_id === null ? [] : [$ebeveyn_id]);
+    $liste = $stmt->fetchAll();
 
+    foreach ($liste as $konum) {
+        $girinti = str_repeat("-", $seviye);
+        $style = $seviye === 0 ? ' style="font-weight:bold"' : '';
+        echo '<option value="' . $konum['id'] . '"' . $style . '>' . $girinti . htmlspecialchars($konum['ad']) . '</option>';
+        konumlariListeleAgac($pdo, $konum['id'], $seviye + 1);
+    }
+}
+
+
+// Konum ekleme işlemi
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ad = trim($_POST['ad'] ?? '');
     $ebeveyn_id = $_POST['ebeveyn_id'] !== '' ? (int)$_POST['ebeveyn_id'] : null;
@@ -23,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="container mt-4">
+<div class="container mt-4" style="max-width:600px;">
     <h3>➕ Yeni Konum Ekle</h3>
 
     <?php if (isset($hata)): ?>
@@ -40,9 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label class="form-label">İçinde Bulunduğu Konum (İsteğe Bağlı)</label>
             <select name="ebeveyn_id" class="form-select">
                 <option value="">— Üst konum yok —</option>
-                <?php foreach ($konumlar as $k): ?>
-                    <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['ad']) ?></option>
-                <?php endforeach; ?>
+                <?php konumlariListeleAgac($pdo); ?>
             </select>
         </div>
 

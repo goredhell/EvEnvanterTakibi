@@ -3,84 +3,71 @@ include 'auth.php';
 include 'db.php';
 include 'menu.php';
 
-$hata = '';
-$basari = '';
+// Hiyerarşik konumları yazdıran fonksiyon
+function konumlariListeleAgac($pdo, $ebeveyn_id = null, $seviye = 0) {
+    $stmt = $pdo->prepare("SELECT * FROM konumlar WHERE ebeveyn_id " . ($ebeveyn_id === null ? "IS NULL" : "= ?") . " ORDER BY ad");
+    $stmt->execute($ebeveyn_id === null ? [] : [$ebeveyn_id]);
+    $liste = $stmt->fetchAll();
 
-// Konumları çek
-$stmt = $pdo->query("SELECT id, ad FROM konumlar ORDER BY ad");
-$konumlar = $stmt->fetchAll();
+    foreach ($liste as $konum) {
+        $girinti = str_repeat("-", $seviye);
+        $style = $seviye === 0 ? ' style="font-weight:bold"' : '';
+        echo '<option value="' . $konum['id'] . '"' . $style . '>' . $girinti . htmlspecialchars($konum['ad']) . '</option>';
+        konumlariListeleAgac($pdo, $konum['id'], $seviye + 1);
+    }
+}
 
+
+// Ürün ekleme işlemi
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ad = trim($_POST['ad'] ?? '');
     $aciklama = trim($_POST['aciklama'] ?? '');
-    $adet = trim($_POST['adet'] ?? '');
-    $konum_id = $_POST['konum_id'] ?? null;
+    $konum_id = (int)($_POST['konum_id'] ?? 0);
+    $adet = $_POST['adet'] !== '' ? (int)$_POST['adet'] : null;
 
-    if ($ad === '') {
-        $hata = 'Ürün adı boş olamaz.';
+    if ($ad === '' || $konum_id === 0) {
+        $hata = "Lütfen gerekli alanları doldurun.";
     } else {
-        $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, adet, konum_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$ad, $aciklama, $adet !== '' ? $adet : null, $konum_id ?: null]);
-        $basari = 'Ürün başarıyla eklendi.';
+        $stmt = $pdo->prepare("INSERT INTO urunler (ad, aciklama, konum_id, adet) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$ad, $aciklama, $konum_id, $adet]);
+        header("Location: urunler.php");
+        exit;
     }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Yeni Ürün Ekle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+<div class="container mt-4" style="max-width:600px;">
+    <h3>➕ Yeni Ürün Ekle</h3>
 
-<div class="container py-4">
-    <h4 class="mb-4">➕ Yeni Ürün Ekle</h4>
-
-    <?php if ($hata): ?>
+    <?php if (isset($hata)): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($hata) ?></div>
-    <?php elseif ($basari): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($basari) ?></div>
     <?php endif; ?>
 
-    <form method="post" class="row g-3">
-        <div class="col-12">
-            <label for="ad" class="form-label">Ürün Adı <span class="text-danger">*</span></label>
-            <input type="text" name="ad" id="ad" class="form-control" required>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">Ürün Adı</label>
+            <input type="text" name="ad" class="form-control" required>
         </div>
 
-        <div class="col-12">
-            <label for="aciklama" class="form-label">Açıklama</label>
-            <textarea name="aciklama" id="aciklama" class="form-control" rows="3"></textarea>
+        <div class="mb-3">
+            <label class="form-label">Açıklama (İsteğe Bağlı)</label>
+            <textarea name="aciklama" class="form-control" rows="2"></textarea>
         </div>
 
-        <div class="col-12 col-md-6">
-            <label for="adet" class="form-label">Adet (isteğe bağlı)</label>
-            <input type="number" name="adet" id="adet" class="form-control" min="0">
-        </div>
-
-        <div class="col-12 col-md-6">
-            <label for="konum_id" class="form-label">Konum</label>
-            <select name="konum_id" id="konum_id" class="form-select">
+        <div class="mb-3">
+            <label class="form-label">Bulunduğu Konum</label>
+            <select name="konum_id" class="form-select" required>
                 <option value="">— Konum Seçin —</option>
-                <?php foreach ($konumlar as $konum): ?>
-                    <option value="<?= $konum['id'] ?>"><?= htmlspecialchars($konum['ad']) ?></option>
-                <?php endforeach; ?>
+                <?php konumlariListeleAgac($pdo); ?>
             </select>
         </div>
 
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary w-100">💾 Kaydet</button>
+        <div class="mb-3">
+            <label class="form-label">Adet (İsteğe Bağlı)</label>
+            <input type="number" name="adet" class="form-control" min="0">
         </div>
+
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a href="urunler.php" class="btn btn-secondary">İptal</a>
     </form>
-
-    <div class="mt-4">
-        <a href="urunler.php" class="btn btn-outline-secondary">← Ürün Listesine Dön</a>
-    </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
