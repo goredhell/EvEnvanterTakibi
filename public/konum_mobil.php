@@ -17,7 +17,7 @@ if (!$konum) {
     exit;
 }
 
-// Fonksiyon: Konum yolunu al (en üstten bu konuma kadar)
+// Konum yolunu bul (ebeveyn zinciri)
 function getKonumYolu($pdo, $konum) {
     $yol = [];
     while ($konum) {
@@ -31,11 +31,28 @@ function getKonumYolu($pdo, $konum) {
     return array_reverse($yol);
 }
 
-$konum_yolu = getKonumYolu($pdo, $konum);
+// Alt konumları da içerecek şekilde tüm konum ID'lerini getir
+function getAltKonumIdler($pdo, $ebeveyn_id) {
+    $idler = [$ebeveyn_id];
 
-// Ürünleri al
-$stmt = $pdo->prepare("SELECT * FROM urunler WHERE konum_id = ?");
-$stmt->execute([$konum['id']]);
+    $stmt = $pdo->prepare("SELECT id FROM konumlar WHERE ebeveyn_id = ?");
+    $stmt->execute([$ebeveyn_id]);
+    $altlar = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    foreach ($altlar as $alt_id) {
+        $idler = array_merge($idler, getAltKonumIdler($pdo, $alt_id));
+    }
+
+    return $idler;
+}
+
+$konum_yolu = getKonumYolu($pdo, $konum);
+$konum_idler = getAltKonumIdler($pdo, $konum['id']);
+
+// Ürünleri al (tüm alt konumlar dahil)
+$in_placeholders = implode(',', array_fill(0, count($konum_idler), '?'));
+$stmt = $pdo->prepare("SELECT * FROM urunler WHERE konum_id IN ($in_placeholders)");
+$stmt->execute($konum_idler);
 $urunler = $stmt->fetchAll();
 ?>
 
@@ -64,9 +81,9 @@ $urunler = $stmt->fetchAll();
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h5 class="card-title">🧾 Bu Konumda Bulunan Ürünler</h5>
+            <h5 class="card-title">🧾 Bu Konum ve Alt Konumlardaki Ürünler</h5>
             <?php if (count($urunler) === 0): ?>
-                <p class="text-muted">Bu konumda kayıtlı ürün bulunmuyor.</p>
+                <p class="text-muted">Hiç ürün bulunamadı.</p>
             <?php else: ?>
                 <ul class="list-group list-group-flush">
                     <?php foreach ($urunler as $u): ?>
